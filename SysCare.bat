@@ -86,27 +86,36 @@ echo ---------------- System Repair -----------------------
 echo [1] Restore system health (DISM /RestoreHealth)
 echo [2] Check the integrity of Windows system (sfc)
 echo [3] Scan your disk for errors and repair them (chkdsk)
+echo [4] Microsoft Malicious Software Removal Tool (MRT)
 echo.
 echo.
 
 echo ---------------- Clean System ------------------------
-echo [4] Disk Cleanup (cleanmgr)
-echo [5] Clean DNS (flushDNS)
+echo [5] Disk Cleanup (cleanmgr)
+echo [6] Clean DNS (flushDNS)
 echo.
 
 echo.
 echo [0] Back to main menu
 echo ========================================================
-choice /c a1234507 /n /m "Select an option: "
+choice /c a1234506 /n /m "Select an option: "
 
 if %errorlevel%==1 goto all_System_health     :: 'a'
 if %errorlevel%==2 goto dismcheck             :: '1'
 if %errorlevel%==3 goto sfcscan               :: '2'
 if %errorlevel%==4 goto chkdsk                :: '3'
-if %errorlevel%==5 goto cleanmgr              :: '4'
-if %errorlevel%==6 goto clearDNS              :: '5'
+if %errorlevel%==5 goto startMRT              :: '4'
+if %errorlevel%==6 goto cleanmgr              :: '5'
 if %errorlevel%==7 goto main                  :: '0'
-if %errorlevel%==8 goto RebuildSearchIndex    :: '7'
+if %errorlevel%==8 goto clearDNS    	      :: '6'
+
+:startMRT
+cls
+echo Starting Microsoft Malicious Software Removal Tool...
+cd %windir%\System32
+start MRT.exe
+pause
+goto systemHealthMenu
 
 
 :RebuildSearchIndex
@@ -251,19 +260,62 @@ goto systemHealthMenu
 
 :check_applications
 cls
+
+python --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Python not found. Installing Python...
+    winget install Python.Python.3.10
+) else (
+    echo Python is already installed.
+)
+
+
+
 echo        ____  _  _  ____   ___   __   ____  ____ 
 echo       / ___)( \/ )/ ___) / __) / _\ (  _ \(  __)
 echo       \___ \ )  / \___ \( (__ /    \ )   / ) _) 
 echo       (____/(__/  (____/ \___)\_/\_/(__\_)(____)
 echo.
 echo +================================+======================
-echo ^| Preforming application upgrade ^|
+echo ^| Performing application upgrade ^|
 echo +================================+
 echo.
+
 winget upgrade --all --silent --accept-source-agreements --accept-package-agreements
 
+set "scriptDir=%~dp0"
+set "tempDir=%scriptDir%\src\temp"
+
+mkdir "%tempDir%"
+winget upgrade > "%tempDir%\temp.txt"
+
+set "script_path=%scriptDir%\src\Extract_ids.py"
+python "%script_path%"
+
+
+echo.
+echo.
+
+echo ======================================================
+echo The following packages could not be upgraded:
+
+
+set "file=%tempDir%\output_ids.txt"
+for /f "usebackq delims=" %%A in ("%file%") do (
+    echo.
+    echo Package to Reinstalling: %%A
+    winget uninstall --id "%%A"
+    winget install --id -h "%%A"
+    
+)
+
+
+:: Cleanup temporary file
+del "%tempDir%\temp.txt"
+del  %file%
 pause
 goto main
+
 
 
 :exit
