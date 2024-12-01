@@ -1,4 +1,9 @@
 @echo off
+
+set "scriptDir=%~dp0"
+set "scripts=%scriptDir%\src\scriptData"
+set "logo=%scripts%\logo.bat"
+
 :: Check for admin privileges
 net session >nul 2>&1
 if %errorlevel% neq 0 (
@@ -7,6 +12,9 @@ if %errorlevel% neq 0 (
     echo.
     :: Relaunch the script with administrative privileges
     powershell -Command "Start-Process '%~f0' -Verb RunAs"
+
+    :: Check if dependency is installed
+    call "%scripts%\dependency.bat"
     exit
 )
 
@@ -14,22 +22,15 @@ if %errorlevel% neq 0 (
 
 :: ------------------------------------------------------------------
 :main
-set "scriptDir=%~dp0"
-set "scripts=%scriptDir%\src\scriptData"
-set "logo=%scripts%\logo.bat"
-
-
-:: Check if dependency is installed
-call "%scripts%\dependency.bat"
-
 cls
 call "%logo%"
+color 0F
 echo ========================================================
 echo                "ctrl + c" to end a task
 echo ========================================================
 echo.
 echo.
-echo [1] Check for application updates (winget)
+echo [1] Application update
 echo [2] Check System Health
 echo [3] Restart apps/ Services
 echo.
@@ -38,7 +39,7 @@ echo [0] Exit
 echo ========================================================
 choice /c 1230 /n /m "Select an option: "
 
-:: Errorlevel values handled below:
+
 if %errorlevel%==1 goto check_applications
 if %errorlevel%==2 goto systemHealthMenu
 if %errorlevel%==3 goto restartServices
@@ -46,13 +47,32 @@ if %errorlevel%==4 goto exit
 
 
 
+:: ------------------------------------------------------------------
 :check_applications
 cls
 call "%logo%"
-call "%scripts%\updateApps.bat"
+echo ========================================================
+echo                  Update Applications
+echo ========================================================
+echo.
+echo.
+echo [1] Update all applications
+echo [2] Update specific applications
+echo [3] Settings
+echo.
+echo.
+echo [0] Back to main menu
+echo ========================================================
+choice /c 1230 /n /m "Select an option: "
+
+
+if %errorlevel%==1 call "%scripts%\updateAllApps.bat"
+if %errorlevel%==2 goto systemHealthMenu
+if %errorlevel%==3 goto restartServices
+if %errorlevel%==4 goto main
+
 pause
 goto main
-
 
 
 

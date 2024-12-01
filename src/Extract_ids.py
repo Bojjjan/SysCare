@@ -32,7 +32,7 @@ def extract_ids(input_file, output_file):
                 id_found = match.group(0)
 
                 # Check if the ID contains "Microsoft.Edge"
-                if "Microsoft.Edge" not in id_found:
+                if "lol" not in id_found:
                     matches_found = True
                     output_lines.append(id_found + '\n')
 
