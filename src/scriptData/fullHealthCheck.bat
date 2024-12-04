@@ -14,6 +14,7 @@ if %errorlevel% equ 0 (
 
 
 echo.
+echo.
 echo +=============================+
 echo ^| Now performing SFC scan...  ^|
 echo +=============================+
@@ -30,6 +31,7 @@ if %errorlevel% equ 0 (
 )
 
 
+echo.
 echo.
 echo +================================+
 echo ^| Now performing Chkdsk scan...  ^|

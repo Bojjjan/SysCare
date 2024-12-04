@@ -1,20 +1,27 @@
 @echo off
 
 set "scriptDir=%~dp0"
-set "scripts=%scriptDir%\src\scriptData"
+set "scripts=%scriptDir%src\scriptData"
 set "logo=%scripts%\logo.bat"
+set /p version=<"%scripts%\version.txt"
+REM mode con: cols=80 lines=25
 
-:: Check for admin privileges
+
+REM Check if dependency is installed
+call "%scripts%\dependency.bat"
+
+REM Check for admin privileges
 net session >nul 2>&1
 if %errorlevel% neq 0 (
+
+    echo.
     echo This script requires administrative privileges. 
     echo Please grant access when prompted.
-    echo.
-    :: Relaunch the script with administrative privileges
+
+    REM Relaunch the script with administrative privileges
     powershell -Command "Start-Process '%~f0' -Verb RunAs"
 
-    :: Check if dependency is installed
-    call "%scripts%\dependency.bat"
+    
     exit
 )
 
@@ -23,7 +30,7 @@ if %errorlevel% neq 0 (
 :: ------------------------------------------------------------------
 :main
 cls
-call "%logo%"
+call "%logo%" %version%
 color 0F
 echo ========================================================
 echo                "ctrl + c" to end a task
@@ -50,7 +57,7 @@ if %errorlevel%==4 goto exit
 :: ------------------------------------------------------------------
 :check_applications
 cls
-call "%logo%"
+call "%logo%" %version%
 echo ========================================================
 echo                  Update Applications
 echo ========================================================
@@ -58,7 +65,7 @@ echo.
 echo.
 echo [1] Update all applications
 echo [2] Update specific applications
-echo [3] Settings
+echo [3] Ignore applications
 echo.
 echo.
 echo [0] Back to main menu
@@ -66,15 +73,41 @@ echo ========================================================
 choice /c 1230 /n /m "Select an option: "
 
 
-if %errorlevel%==1 call "%scripts%\updateAllApps.bat"
-if %errorlevel%==2 goto systemHealthMenu
-if %errorlevel%==3 goto restartServices
+if %errorlevel%==1 call "%scripts%\updateAllApps.bat" %version%
+if %errorlevel%==2 goto 
+if %errorlevel%==3 goto ignore_Applications
 if %errorlevel%==4 goto main
 
 pause
 goto main
 
+:: ------------------------------------------------------------------
+:ignore_Applications
+cls
+call "%logo%" %version%
+echo ========================================================
+echo                  Ignore Applications
+echo ========================================================
+echo (?) To add/ remove apps write the full ID of the App
+echo.
+echo.
+echo [1] List all apps/ IDs on PC
+echo [2] ^+ Add 
+echo [3] ^- Remove 
+echo.
+echo.
+echo [0] Back
+echo ========================================================
+choice /c 1230 /n /m "Select an option: "
 
+
+if %errorlevel%==1 goto allApps 
+if %errorlevel%==2 goto systemHealthMenu
+if %errorlevel%==3 goto restartServices
+if %errorlevel%==4 goto check_applications
+
+pause
+goto check_applications
 
 
 
@@ -82,7 +115,7 @@ goto main
 :: Restart Services Tab
 :restartServices
 cls
-call "%logo%"
+call "%logo%" %version%
 echo ========================================================
 echo               RESTART APPS/ SERVICES
 echo ========================================================
@@ -113,7 +146,7 @@ goto systemHealthMenu
 :: ------------------------------------------------------------------
 :systemHealthMenu
 cls
-call "%logo%"
+call "%logo%" %version%
 echo ========================================================
 echo                  SYSTEM HEALTH CHECK
 echo ========================================================
@@ -146,6 +179,14 @@ if %errorlevel%==6 goto cleanmgr              :: '5'
 if %errorlevel%==7 goto main                  :: '0'
 if %errorlevel%==8 goto clearDNS    	      :: '6'
 
+
+:allApps
+cls
+winget list > "temp.txt"
+
+pause
+goto ignore_Applications
+
 :all_System_health
 cls
 call "%scripts%\fullHealthCheck.bat"
@@ -159,7 +200,6 @@ cd %windir%\System32
 start MRT.exe
 pause
 goto systemHealthMenu
-
 
 
 
