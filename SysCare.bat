@@ -65,7 +65,7 @@ echo.
 echo.
 echo [1] Update all applications
 echo [2] Update specific applications
-echo [3] Ignore applications
+echo [3] Blocklist
 echo.
 echo.
 echo [0] Back to main menu
@@ -86,13 +86,13 @@ goto main
 cls
 call "%logo%" %version%
 echo ========================================================
-echo                  Ignore Applications
+echo                  Blocklist Applications
 echo ========================================================
 echo (?) To add/ remove apps write the full ID of the App
 echo.
 echo.
 echo [1] List all apps/ IDs on PC
-echo [2] ^+ Add 
+echo [2] ^+ Add
 echo [3] ^- Remove 
 echo.
 echo.
